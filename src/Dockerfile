@@ -4,8 +4,7 @@ WORKDIR /app
 
 COPY src/package.json src/package-lock.json ./
 RUN npm install
-RUN npm i -g knex
-RUN knex migrate:latest
+RUN npm i -g knex   
 
 COPY src/ ./
 
