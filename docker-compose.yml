@@ -14,7 +14,7 @@ services:
     ports:
       - 3205:5433
     networks:
-      - mynetwork
+      - game-repository-network
   
   scanner:
     restart: always
@@ -30,11 +30,11 @@ services:
     depends_on:
       - db-repository
     networks:
-      - mynetwork
+      - game-repository-network
     
     command: sh ./start.sh
     
   
 
 networks:
-  mynetwork:
+  game-repository-network:
