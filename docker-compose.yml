@@ -16,7 +16,7 @@ services:
     networks:
       - game-repository-network
   
-  scanner:
+  scanner-games:
     restart: always
     build:
       context: .
@@ -28,7 +28,7 @@ services:
       POSTGRES_HOST: db-repository
       POSTGRES_PORT: 5433
     depends_on:
-      - db
+      - db-repository
     networks:
       - game-repository-network
     
