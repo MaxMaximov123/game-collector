@@ -1,6 +1,6 @@
 version: '3'
 services:
-  db-repository:
+  db:
     image: postgres
     restart: always
     environment:
@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     ports:
-      - 3202:5433
+      - 3205:5433
     networks:
       - game-repository-network
   
@@ -20,15 +20,15 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: src/Dockerfile
+      dockerfile: scannerHistory/Dockerfile
     environment:
       POSTGRES_USER: max
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
       POSTGRES_DB: history
-      POSTGRES_HOST: db-repository
+      POSTGRES_HOST: db
       POSTGRES_PORT: 5433
     depends_on:
-      - db-repository
+      - db
     networks:
       - game-repository-network
     
