@@ -1,0 +1,40 @@
+version: '3'
+services:
+  db-repository:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: max
+      POSTGRES_PASSWORD: jbfgslgsdlfkngd
+      POSTGRES_DB: history
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5442
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - 3300:5442
+    networks:
+      - mynetwork
+  
+  scanner:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: max
+      POSTGRES_PASSWORD: jbfgslgsdlfkngd
+      POSTGRES_DB: history
+      POSTGRES_HOST: db-repository
+      POSTGRES_PORT: 5442
+    depends_on:
+      - db-repository
+    networks:
+      - mynetwork
+    
+    command: sh ./start.sh
+    
+  
+
+networks:
+  mynetwork:

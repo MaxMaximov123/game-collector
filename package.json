@@ -1,0 +1,28 @@
+{
+  "name": "game-repository",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMaximov123/game-repository.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaxMaximov123/game-repository/issues"
+  },
+  "homepage": "https://github.com/MaxMaximov123/game-repository#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "knex": "^2.5.1",
+    "lodash": "^4.17.21",
+    "pg": "^8.11.1",
+    "ws": "^8.11.0"
+  }
+}
