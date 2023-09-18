@@ -22,7 +22,7 @@ exports.up = function(knex) {
       table.index('sport_key');
       table.index('bookie_key');
       table.index('live_from');
-      table.timestamp("live_till");
+      table.index("live_till");
       table.index('unavailable_at');
       table.index("updated_at");
       
