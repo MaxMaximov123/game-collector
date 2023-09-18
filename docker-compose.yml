@@ -8,11 +8,11 @@ services:
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
       POSTGRES_DB: history
       POSTGRES_HOST: db
-      POSTGRES_PORT: 5442
+      POSTGRES_PORT: 5433
     volumes:
       - ./data:/var/lib/postgresql/data
     ports:
-      - 3300:5442
+      - 3250:5433
     networks:
       - mynetwork
   
@@ -26,7 +26,7 @@ services:
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
       POSTGRES_DB: history
       POSTGRES_HOST: db-repository
-      POSTGRES_PORT: 5442
+      POSTGRES_PORT: 5433
     depends_on:
       - db-repository
     networks:
