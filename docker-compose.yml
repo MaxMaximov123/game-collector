@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: max
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
       POSTGRES_DB: history
-      POSTGRES_HOST: db
+      POSTGRES_HOST: db-repository
       POSTGRES_PORT: 5433
     volumes:
       - ./data:/var/lib/postgresql/data
