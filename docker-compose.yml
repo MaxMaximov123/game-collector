@@ -1,6 +1,6 @@
 version: '3'
 services:
-  db:
+  db-repository:
     image: postgres
     restart: always
     environment:
@@ -25,14 +25,14 @@ services:
       POSTGRES_USER: max
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
       POSTGRES_DB: history
-      POSTGRES_HOST: db
+      POSTGRES_HOST: db-repository
       POSTGRES_PORT: 5433
     depends_on:
       - db
     networks:
       - game-repository-network
     
-    command: sh ./start.sh
+    # command: sh ./start.sh
     
   
 
