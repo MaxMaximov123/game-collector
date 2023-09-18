@@ -87,7 +87,7 @@ async function makeAllInserts(){
 	}
 }
 
-setInterval(makeAllInserts, 1000 * 10);
+// setInterval(makeAllInserts, 1000 * 10);
 // ---------------------------------------------------------------------- //
 
 const socketInput = new WebsocketInput('wss://api.livesport.tools/v2?clientKey=mn8W5KhnuwBHdgSJNdUkZbXRC8EFPAfm');
