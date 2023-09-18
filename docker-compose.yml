@@ -32,7 +32,7 @@ services:
     networks:
       - game-repository-network
     
-    # command: sh ./start.sh
+    command: sh ./start.sh
     
   
 
