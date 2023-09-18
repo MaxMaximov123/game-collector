@@ -2,12 +2,12 @@ FROM node:latest
 
 WORKDIR /app
 
-COPY ./package.json ./package-lock.json ./
+COPY src/package.json src/package-lock.json ./
 RUN npm install
 RUN npm i -g knex
 RUN knex migrate:latest
 
-COPY ./ ./
+COPY src/ ./
 
 
 
