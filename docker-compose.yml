@@ -20,7 +20,7 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: src/Dockerfile
     environment:
       POSTGRES_USER: max
       POSTGRES_PASSWORD: jbfgslgsdlfkngd
