@@ -1,4 +1,4 @@
-const WebSocket = require('ws');
+const WebsocketInput = require('ws');
 const cleanUpDeeply = require('./clean-up-deeply');
 const merge = require('lodash/merge');
 require('dotenv').config();
@@ -10,98 +10,26 @@ require('dotenv').config();
 
 const knex = require('knex');
 const config = require('./knexfile');
-
-const db = knex(config.development);
-db('pairs').select('*').then((r)=> {console.log(r)});
+const { db } = require('./database');
 
 
-async function initDB(){
-	const createGamesTable = async () => {
-		try {
-			await db.schema.createTable('games', function(table) {
-			table.bigint('id').primary().unique();
-			table.bigint('globalGameId');
-			table.string('team1Id');
-			table.string('team2Id');
-			table.string('team1Name');
-			table.string('team2Name');
-			table.string('sportKey');
-			table.string('bookieKey');
-			table.bigint('startTime');
-			});
-			console.log('Games table created');
-		} catch (error) {}
-	};
-		
-	createGamesTable();
-
-	const createOutcomesTable = async () => {
-		try {
-			await db.schema.createTable('outcomes', function(table) {
-			table.bigint('id');
-			table.string('path');
-			table.float('odds');
-			table.bigint('now');
-			});
-			console.log('Outcomes table created');
-		} catch (error) {}
-		};
-		
-	createOutcomesTable();
-
-	const createScoresTable = async () => {
-		try {
-			await db.schema.createTable('scores', function(table) {
-			table.bigint('id');
-			table.string('path');
-			table.integer('score');
-			table.bigint('now');
-			});
-			console.log('Outcomes table created');
-		} catch (error) {}
-		};
-		
-	createScoresTable();
-
+const a = async () => {
+	// console.log((await db('games').select('*')))
+	await db('games').insert({
+		gameId: 10,
+		leagueId: 4,
+		globalGameId: 1,
+		isLive: true,
+		team1Id: 1,
+		team2Id: 3,
+		sportKey: 'dsfds',
+		bookieKey: 'dds',
+		liveFrom: new Date(),
+		unavailableAt: null
+	})
 }
+a();
 
-// initDB();
-
-const addGame = async (data) => {
-	try {
-	  await db('games').insert(data);
-	  console.log('game added');
-	} catch (error) {
-		// console.error(error);
-	}
-  };
-
-const addScore = async (data) => {
-	try {
-		await db('scores').insert(data);
-		console.log('score added');
-	} catch (error) {
-		// console.error(error);
-	}
-};
-
-const addOucome = async (data) => {
-	try {
-		await db('outcomes').insert(data);
-		console.log('outcome added');
-	} catch (error) {
-		// console.error(error);
-	}
-};
-
-const updateGame = async (gameId, data) => {
-	try {
-		await db('games').where('id', gameId).update(data);
-		console.log('update game');
-	} catch (error) {
-		console.error(error);
-	}
-};
 //_________________________________________________________________//
 
 
@@ -113,33 +41,80 @@ let globalGameList = null;
 let globalGames = {};
 let gameList = null;
 let games = {};
+
+let gamesTransactions = [];
+let globalGameIdTransactions = [];
+let startTimeTransactions = [];
+let teamsNamesTransactions = [];
+let scoresTransactions = [];
+let outcomesTransactions = [];
+
+async function makeAllInserts(){
+	if (gamesTransactions.length > 0){
+		let gamesTransactions_ = gamesTransactions.slice();
+		gamesTransactions.length = 0;
+		await db('games').insert(gamesTransactions_);
+	}
+
+	if (globalGameIdTransactions.length > 0){
+		let globalGameIdTransactions_ = globalGameIdTransactions.slice();
+		globalGameIdTransactions.length = 0;
+		await db('global_game_id_updates').insert(globalGameIdTransactions_);
+	}
+
+	if (startTimeTransactions.length > 0){
+		let startTimeTransactions_ = startTimeTransactions.slice();
+		startTimeTransactions.length = 0;
+		await db('start_time_updates').insert(startTimeTransactions_);
+	}
+
+	if (teamsNamesTransactions.length > 0){
+		let teamsNamesTransactions_ = teamsNamesTransactions.slice();
+		teamsNamesTransactions.length = 0;
+		await db('teams_names_updates').insert(teamsNamesTransactions_);
+	}
+
+	if (scoresTransactions.length > 0){
+		let scoresTransactions_ = scoresTransactions.slice();
+		scoresTransactions.length = 0;
+		await db('scores').insert(scoresTransactions_);
+	}
+
+	if (outcomesTransactions.length > 0){
+		let outcomesTransactions_ = outcomesTransactions.slice();
+		outcomesTransactions.length = 0;
+		await db('outcomes').insert(outcomesTransactions_);
+	}
+}
+
+setInterval(makeAllInserts, 1000 * 10);
 // ---------------------------------------------------------------------- //
 
-const socket = new WebSocket('wss://api.livesport.tools/v2?clientKey=mn8W5KhnuwBHdgSJNdUkZbXRC8EFPAfm');
+const socketInput = new WebsocketInput('wss://api.livesport.tools/v2?clientKey=mn8W5KhnuwBHdgSJNdUkZbXRC8EFPAfm');
 
-socket.send = ((send) => {
+socketInput.send = ((send) => {
 	return function ({ id = null, type, data = null , relatedId}) {
 		let message = JSON.stringify([type, data, id, relatedId]);
 		// console.info(`>> ${message}`);
 		return send.call(this, message);
 	};
-})(socket.send);
+})(socketInput.send);
 
-socket.on('open', () => {
-	socket.nextRequestId = 1;
-	console.info(`WebSocket: open.`);
+// socketInput.on('open', () => {
+// 	socketInput.nextRequestId = 1;
+// 	console.info(`WebsocketInput: open.`);
 
-	socket.send({
-		id: socket.nextRequestId++,
-		type: 'authorize',
-		data: {
-			secretKey: 'Y%7tRIA8hlgH8#nk60x&4W$CPJh^%x99',
-		},
-		relatedId: 1,
-	});
-});
+// 	socketInput.send({
+// 		id: socketInput.nextRequestId++,
+// 		type: 'authorize',
+// 		data: {
+// 			secretKey: 'Y%7tRIA8hlgH8#nk60x&4W$CPJh^%x99',
+// 		},
+// 		relatedId: 1,
+// 	});
+// });
 
-socket.on('message', async (message) => {
+socketInput.on('message', async (message) => {
 	message = message.toString();
 	// console.info(`<<`, JSON.parse(message));
 	let type, data, id, relatedId, error;
@@ -160,13 +135,11 @@ socket.on('message', async (message) => {
 
 	if (type === 'authorized') {
 		// Subscribing to GameList
-
-		socket.send({
-			id: socket.nextRequestId++,
+		socketInput.send({
+			id: socketInput.nextRequestId++,
 			type: 'gameList/subscribe',
 			data: {},
 		});
-
 		return;
 	}
 
@@ -197,93 +170,89 @@ socket.on('message', async (message) => {
 	if (typeMatch = type.match(/^game:([0-9]+)\/(created|updated|deleted)/)) {
 		let gameId = Number(typeMatch[1]);
 
-		
-
 		if (data === '\x00') {
 			delete games[gameId];
 		} else {
 			let game = games[gameId] || null;
 
 			if (game) {
-				merge(game, data);
-				cleanUpDeeply(game);
-				if (data.startTime){
-					try {
-						await db('startTimeUpdates').insert({
-							gameId: game.id,
-							startTime: new Date(game.startTime),
-							time: new Date()
-						});
-						console.log('update startTime');
-					} catch (error) {console.error(error)}
-				}
-				if (data?.team1?.name || data?.team2?.name){
-					try {
-						await db('teamsNamesUpdates').insert({
-							gameId: game.id,
-							team1Name: game.team1?.name,
-							team2Name: game.team2?.name,
-							time: new Date()
-						});
-						console.log('update names');
-					} catch (error) {console.error(error)}
-				}
-				if (data.globalGameId || data.startTime || data.liveFrom || data.liveTill || data.unavailableAt){
-					await updateGame(gameId, {
-						globalGameId: game.globalGameId,
-						unavailableAt: game.unavailableAt,
-						startTime: new Date(game.startTime).getTime(),
-						liveFrom: new Date(game.liveFrom).getTime(),
-						liveTill: new Date(game.liveTill).getTime(),
-						lastUpdate: new Date().getTime(),
-						leagueId: game?.league?.id,
-					});
-				}
+				// Game already exist
+				// merge(game, data);
+				// cleanUpDeeply(game);
+				// if (data.startTime){
+				// 	try {
+				// 		await db('startTimeUpdates').insert({
+				// 			gameId: game.id,
+				// 			startTime: new Date(game.startTime),
+				// 			time: new Date()
+				// 		});
+				// 		console.log('update startTime');
+				// 	} catch (error) {console.error(error)}
+				// }
+				// if (data?.team1?.name || data?.team2?.name){
+				// 	try {
+				// 		await db('teamsNamesUpdates').insert({
+				// 			gameId: game.id,
+				// 			team1Name: game.team1?.name,
+				// 			team2Name: game.team2?.name,
+				// 			time: new Date()
+				// 		});
+				// 		console.log('update names');
+				// 	} catch (error) {console.error(error)}
+				// }
+				// if (data.globalGameId || data.startTime || data.liveFrom || data.liveTill || data.unavailableAt){
+				// 	await updateGame(gameId, {
+				// 		globalGameId: game.globalGameId,
+				// 		unavailableAt: game.unavailableAt,
+				// 		startTime: new Date(game.startTime).getTime(),
+				// 		liveFrom: new Date(game.liveFrom).getTime(),
+				// 		liveTill: new Date(game.liveTill).getTime(),
+				// 		lastUpdate: new Date().getTime(),
+				// 		leagueId: game?.league?.id,
+				// 	});
+				// }
 			} else {
 				game = games[gameId] = data;
-				await addGame({
-					id: game?.id,
-					globalGameId: game?.globalGameId,
+				gamesTransactions.push({
+					gameId: game?.id,
+					leagueId: game?.league?.id,
 					isLive: game?.isLive,
 					team1Id: game?.team1?.id,
 					team2Id: game?.team2?.id,
-					team1Name: game?.team1?.name,
-					team2Name: game?.team2?.name,
 					sportKey: game?.sport?.key,
 					bookieKey: game?.bookie?.key,
 					unavailableAt: game?.unavailableAt,
-					startTime: new Date(game?.startTime).getTime(),
-					liveFrom: new Date(game?.liveFrom).getTime(),
-					liveTill: new Date(game?.liveTill).getTime(),
-					lastUpdate: new Date().getTime(),
-					leagueId: game?.league?.id
+					liveFrom: new Date(game?.liveFrom),
+					liveTill: new Date(game?.liveTill),
+					lastUpdate: new Date(),
+					
 				});
 			}
 			
-			if (data.outcomes?.result){
-				const paths = getAllPathsOutcomes(data.outcomes.result);
-				for (let path in paths){
-					await addOucome({
-						id: gameId,
-						path: path,
-						odds: paths[path],
-						now: new Date().getTime(),
-						isLive: game?.isLive,
-					})
-				}
-			}
+			// if (data.outcomes?.result){
+			// 	const paths = getAllPathsOutcomes(data.outcomes.result);
+			// 	for (let path in paths){
+			// 		await addOucome({
+			// 			id: gameId,
+			// 			path: path,
+			// 			odds: paths[path],
+			// 			now: new Date().getTime(),
+			// 			isLive: game?.isLive,
+			// 		})
+			// 	}
+			// }
 
-			if (data.scores?.result){
-				const paths = getAllPathsOutcomes(data.scores.result, false);
-				for (let path in paths){	
-					await addScore({
-						id: gameId,
-						path: path,
-						score: paths[path],
-						now: new Date().getTime()
-					})
-				}
-			}
+			// if (data.scores?.result){
+			// 	const paths = getAllPathsOutcomes(data.scores.result, false);
+			// 	for (let path in paths){	
+			// 		await addScore({
+			// 			id: gameId,
+			// 			path: path,
+			// 			score: paths[path],
+			// 			now: new Date().getTime()
+			// 		})
+			// 	}
+			// }
 		}
 	}
 
@@ -329,12 +298,12 @@ socket.on('message', async (message) => {
 	}
 });
 
-socket.on('error', (error) => {
+socketInput.on('error', (error) => {
 	console.error(error);
 });
 
-socket.on('close', () => {
-	console.info('WebSocket: closed.');
+socketInput.on('close', () => {
+	console.info('WebsocketInput: closed.');
 	process.exit(0);
 });
 
@@ -345,8 +314,8 @@ function syncGlobalGameSubscriptions() {
 		if (globalGames[globalGameId] === undefined) {
 			globalGames[globalGameId] = null;
 
-			socket.send({
-				id: socket.nextRequestId++,
+			socketInput.send({
+				id: socketInput.nextRequestId++,
 				type: `globalGame:${globalGameId}/subscribe`,
 			});
 		}
@@ -358,8 +327,8 @@ function syncGameSubscriptions() {
 		if (games[gameId] === undefined) {
 			games[gameId] = null;
 
-			socket.send({
-				id: socket.nextRequestId++,
+			socketInput.send({
+				id: socketInput.nextRequestId++,
 				type: `game:${gameId}/subscribe`,
 			});
 		}
