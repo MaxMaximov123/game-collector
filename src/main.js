@@ -12,24 +12,6 @@ const knex = require('knex');
 const config = require('./knexfile');
 const { db } = require('./database');
 
-
-const a = async () => {
-	// console.log((await db('games').select('*')))
-	await db('games').insert({
-		gameId: 10,
-		leagueId: 4,
-		globalGameId: 1,
-		isLive: true,
-		team1Id: 1,
-		team2Id: 3,
-		sportKey: 'dsfds',
-		bookieKey: 'dds',
-		liveFrom: new Date(),
-		unavailableAt: null
-	})
-}
-a();
-
 //_________________________________________________________________//
 
 
