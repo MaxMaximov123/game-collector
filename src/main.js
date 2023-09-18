@@ -12,6 +12,7 @@ const knex = require('knex');
 const config = require('./knexfile');
 
 const db = knex(config.development);
+db('pairs').select('*').then((r)=> {console.log(r)});
 
 
 async function initDB(){

@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     ports:
-      - 3250:5433
+      - 3205:5433
     networks:
       - mynetwork
   

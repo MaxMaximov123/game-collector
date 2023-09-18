@@ -1,7 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config();
+require('dotenv').config();
 
-export default {
+module.exports = {
     development: {
         client: 'pg',
         connection: {
