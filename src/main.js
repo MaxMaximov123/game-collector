@@ -46,7 +46,9 @@ async function makeAllInserts(){
 	if (globalGameIdTransactions.length > 0){
 		let globalGameIdTransactions_ = globalGameIdTransactions.slice();
 		globalGameIdTransactions.length = 0;
-		await db('global_game_id_updates').insert(globalGameIdTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('global_game_id_updates').insert(globalGameIdTransactions_).onConflict().ignore();
+		});
 		console.log('add globalGameIds', globalGameIdTransactions_.length);
 		globalGameIdTransactions_.length = 0;
 	}
@@ -54,7 +56,9 @@ async function makeAllInserts(){
 	if (startTimeTransactions.length > 0){
 		let startTimeTransactions_ = startTimeTransactions.slice();
 		startTimeTransactions.length = 0;
-		await db('start_time_updates').insert(startTimeTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('start_time_updates').insert(startTimeTransactions_).onConflict().ignore();
+		});
 		console.log('add startTimeUpdates', startTimeTransactions_.length);
 		startTimeTransactions_.length = 0;
 	}
@@ -62,7 +66,9 @@ async function makeAllInserts(){
 	if (teamsNamesTransactions.length > 0){
 		let teamsNamesTransactions_ = teamsNamesTransactions.slice();
 		teamsNamesTransactions.length = 0;
-		await db('teams_names_updates').insert(teamsNamesTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('teams_names_updates').insert(teamsNamesTransactions_).onConflict().ignore();
+		});
 		console.log('add teamsNamesUpdates', teamsNamesTransactions_.length);
 		teamsNamesTransactions_.length = 0;
 	}
@@ -70,7 +76,9 @@ async function makeAllInserts(){
 	if (scoresTransactions.length > 0){
 		let scoresTransactions_ = scoresTransactions.slice();
 		scoresTransactions.length = 0;
-		await db('scores').insert(scoresTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('scores').insert(scoresTransactions_).onConflict().ignore();
+		});
 		console.log('add scores', scoresTransactions_.length);
 		scoresTransactions_.length = 0;
 	}
@@ -78,7 +86,9 @@ async function makeAllInserts(){
 	if (outcomesTransactions.length > 0){
 		let outcomesTransactions_ = outcomesTransactions.slice();
 		outcomesTransactions.length = 0;
-		await db('outcomes').insert(outcomesTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('outcomes').insert(outcomesTransactions_).onConflict().ignore();
+		});
 		console.log('add outcomes', outcomesTransactions_.length);
 		outcomesTransactions_.length = 0;
 	}
