@@ -26,6 +26,7 @@ let gameList = null;
 let games = {};
 
 let gamesTransactions = [];
+let gamesUpdatesTransactions = [];
 let globalGameIdTransactions = [];
 let startTimeTransactions = [];
 let teamsNamesTransactions = [];
@@ -91,6 +92,19 @@ async function makeAllInserts(){
 		});
 		console.log('add outcomes', outcomesTransactions_.length);
 		outcomesTransactions_.length = 0;
+	}
+
+	if (gamesUpdatesTransactions.length > 0){
+		let gamesUpdatesTransactions_ = gamesUpdatesTransactions.slice();
+		gamesUpdatesTransactions.length = 0;
+		let updatePromises = gamesUpdatesTransactions_.map(update => {
+			return db('games')
+			  .where({ gameId: update.gameId })
+			  .update(update.data)
+		  });
+		await Promise.all(updatePromises);
+		console.log('update games', gamesUpdatesTransactions_.length);
+		gamesUpdatesTransactions_.length = 0;
 	}
 }
 
@@ -203,6 +217,19 @@ socketInput.on('message', async (message) => {
 					
 				});
 			}
+
+			if (data.isLive || data.liveFrom || data.liveTill || data.unavailableAt){
+				gamesUpdatesTransactions.push({
+					gameId: game.id,
+					data: {
+						unavailableAt: game?.unavailableAt,
+						liveFrom: new Date(game?.liveFrom),
+						liveTill: new Date(game?.liveTill),
+						updated_at: new Date(),
+					}
+				});
+			}
+
 			if (data.globalGameId) globalGameIdTransactions.push(
 				{gameId: game.id, globalGameId: game.globalGameId, time: new Date()}
 			);
