@@ -86,7 +86,6 @@ async function makeAllInserts(){
 	if (outcomesTransactions.length > 0){
 		let outcomesTransactions_ = outcomesTransactions.slice();
 		outcomesTransactions.length = 0;
-		console.log(outcomesTransactions_);
 		await db.transaction(async (trx) => {
 			await trx('outcomes').insert(outcomesTransactions_).onConflict().ignore();
 		});
@@ -185,40 +184,8 @@ socketInput.on('message', async (message) => {
 
 			if (game) {
 				// Game already exist
-				// merge(game, data);
-				// cleanUpDeeply(game);
-				// if (data.startTime){
-				// 	try {
-				// 		await db('startTimeUpdates').insert({
-				// 			gameId: game.id,
-				// 			startTime: new Date(game.startTime),
-				// 			time: new Date()
-				// 		});
-				// 		console.log('update startTime');
-				// 	} catch (error) {console.error(error)}
-				// }
-				// if (data?.team1?.name || data?.team2?.name){
-				// 	try {
-				// 		await db('teamsNamesUpdates').insert({
-				// 			gameId: game.id,
-				// 			team1Name: game.team1?.name,
-				// 			team2Name: game.team2?.name,
-				// 			time: new Date()
-				// 		});
-				// 		console.log('update names');
-				// 	} catch (error) {console.error(error)}
-				// }
-				// if (data.globalGameId || data.startTime || data.liveFrom || data.liveTill || data.unavailableAt){
-				// 	await updateGame(gameId, {
-				// 		globalGameId: game.globalGameId,
-				// 		unavailableAt: game.unavailableAt,
-				// 		startTime: new Date(game.startTime).getTime(),
-				// 		liveFrom: new Date(game.liveFrom).getTime(),
-				// 		liveTill: new Date(game.liveTill).getTime(),
-				// 		lastUpdate: new Date().getTime(),
-				// 		leagueId: game?.league?.id,
-				// 	});
-				// }
+				merge(game, data);
+				cleanUpDeeply(game);
 			} else {
 				game = games[gameId] = data;
 				gamesTransactions.push({
@@ -236,6 +203,19 @@ socketInput.on('message', async (message) => {
 					
 				});
 			}
+			if (data.globalGameId) globalGameIdTransactions.push(
+				{gameId: game.id, globalGameId: game.globalGameId, time: new Date()}
+			);
+
+			if (data.startTime) startTimeTransactions.push(
+				{gameId: game.id, startTime: game.startTime, time: new Date()}
+			);
+
+			if (data.team1?.name || data.team2?.name) teamsNamesTransactions.push(
+				{
+					gameId: game.id, team1Name: game.team1.name, 
+					team2Name: game.team2.name, time: new Date()}
+			);
 			
 			if (data.outcomes?.result){
 				const paths = getAllPathsOutcomes(data.outcomes.result);
