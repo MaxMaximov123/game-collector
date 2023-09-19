@@ -1,16 +1,17 @@
-const WebsocketInput = require('ws');
-const cleanUpDeeply = require('./clean-up-deeply');
-const merge = require('lodash/merge');
-require('dotenv').config();
+import WebsocketInput from 'ws';
+import cleanUpDeeply from './clean-up-deeply.js';
+import merge from 'lodash/merge.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 
 
 //_______________________ инициализация и функции бд _______________________________//
 
-const knex = require('knex');
-const config = require('./knexfile');
-const { db } = require('./database');
+import knex from 'knex';
+import config from './knexfile.js';
+import { db } from './database.js';
 
 //_________________________________________________________________//
 
@@ -35,41 +36,55 @@ async function makeAllInserts(){
 	if (gamesTransactions.length > 0){
 		let gamesTransactions_ = gamesTransactions.slice();
 		gamesTransactions.length = 0;
-		await db('games').insert(gamesTransactions_);
+		await db.transaction(async (trx) => {
+			await trx('games').insert(gamesTransactions_).onConflict().ignore();
+		});
+		console.log('add games', gamesTransactions_.length);
+		gamesTransactions_.length = 0;
 	}
 
 	if (globalGameIdTransactions.length > 0){
 		let globalGameIdTransactions_ = globalGameIdTransactions.slice();
 		globalGameIdTransactions.length = 0;
 		await db('global_game_id_updates').insert(globalGameIdTransactions_);
+		console.log('add globalGameIds', globalGameIdTransactions_.length);
+		globalGameIdTransactions_.length = 0;
 	}
 
 	if (startTimeTransactions.length > 0){
 		let startTimeTransactions_ = startTimeTransactions.slice();
 		startTimeTransactions.length = 0;
 		await db('start_time_updates').insert(startTimeTransactions_);
+		console.log('add startTimeUpdates', startTimeTransactions_.length);
+		startTimeTransactions_.length = 0;
 	}
 
 	if (teamsNamesTransactions.length > 0){
 		let teamsNamesTransactions_ = teamsNamesTransactions.slice();
 		teamsNamesTransactions.length = 0;
 		await db('teams_names_updates').insert(teamsNamesTransactions_);
+		console.log('add teamsNamesUpdates', teamsNamesTransactions_.length);
+		teamsNamesTransactions_.length = 0;
 	}
 
 	if (scoresTransactions.length > 0){
 		let scoresTransactions_ = scoresTransactions.slice();
 		scoresTransactions.length = 0;
 		await db('scores').insert(scoresTransactions_);
+		console.log('add scores', scoresTransactions_.length);
+		scoresTransactions_.length = 0;
 	}
 
 	if (outcomesTransactions.length > 0){
 		let outcomesTransactions_ = outcomesTransactions.slice();
 		outcomesTransactions.length = 0;
 		await db('outcomes').insert(outcomesTransactions_);
+		console.log('add outcomes', outcomesTransactions_.length);
+		outcomesTransactions_.length = 0;
 	}
 }
 
-// setInterval(makeAllInserts, 1000 * 10);
+setInterval(makeAllInserts, 1000);
 // ---------------------------------------------------------------------- //
 
 const socketInput = new WebsocketInput('wss://api.livesport.tools/v2?clientKey=mn8W5KhnuwBHdgSJNdUkZbXRC8EFPAfm');
@@ -82,19 +97,19 @@ socketInput.send = ((send) => {
 	};
 })(socketInput.send);
 
-// socketInput.on('open', () => {
-// 	socketInput.nextRequestId = 1;
-// 	console.info(`WebsocketInput: open.`);
+socketInput.on('open', () => {
+	socketInput.nextRequestId = 1;
+	console.info(`WebsocketInput: open.`);
 
-// 	socketInput.send({
-// 		id: socketInput.nextRequestId++,
-// 		type: 'authorize',
-// 		data: {
-// 			secretKey: 'Y%7tRIA8hlgH8#nk60x&4W$CPJh^%x99',
-// 		},
-// 		relatedId: 1,
-// 	});
-// });
+	socketInput.send({
+		id: socketInput.nextRequestId++,
+		type: 'authorize',
+		data: {
+			secretKey: 'Y%7tRIA8hlgH8#nk60x&4W$CPJh^%x99',
+		},
+		relatedId: 1,
+	});
+});
 
 socketInput.on('message', async (message) => {
 	message = message.toString();
@@ -206,35 +221,35 @@ socketInput.on('message', async (message) => {
 					unavailableAt: game?.unavailableAt,
 					liveFrom: new Date(game?.liveFrom),
 					liveTill: new Date(game?.liveTill),
-					lastUpdate: new Date(),
+					updated_at: new Date(),
 					
 				});
 			}
 			
-			// if (data.outcomes?.result){
-			// 	const paths = getAllPathsOutcomes(data.outcomes.result);
-			// 	for (let path in paths){
-			// 		await addOucome({
-			// 			id: gameId,
-			// 			path: path,
-			// 			odds: paths[path],
-			// 			now: new Date().getTime(),
-			// 			isLive: game?.isLive,
-			// 		})
-			// 	}
-			// }
+			if (data.outcomes?.result){
+				const paths = getAllPathsOutcomes(data.outcomes.result);
+				for (let path in paths){
+					outcomesTransactions.push({
+						gameId: gameId,
+						path: path,
+						val: paths[path],
+						time: new Date(),
+						isLive: game?.isLive,
+					})
+				}
+			}
 
-			// if (data.scores?.result){
-			// 	const paths = getAllPathsOutcomes(data.scores.result, false);
-			// 	for (let path in paths){	
-			// 		await addScore({
-			// 			id: gameId,
-			// 			path: path,
-			// 			score: paths[path],
-			// 			now: new Date().getTime()
-			// 		})
-			// 	}
-			// }
+			if (data.scores?.result){
+				const paths = getAllPathsOutcomes(data.scores.result, false);
+				for (let path in paths){	
+					scoresTransactions.push({
+						gameId: gameId,
+						path: path,
+						val: paths[path],
+						time: new Date()
+					})
+				}
+			}
 		}
 	}
 

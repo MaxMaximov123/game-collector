@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "game-repository",
   "version": "1.0.0",
   "description": "",

@@ -1,4 +1,4 @@
-function cleanUpDeeply(value) {
+export default function cleanUpDeeply(value) {
 	if (Array.isArray(value)) {
 		for (let index = 0; index < value.length; ) {
 			if (value[index] === '\x00') {
@@ -18,6 +18,3 @@ function cleanUpDeeply(value) {
 		}
 	}
 }
-
-
-module.exports = cleanUpDeeply;

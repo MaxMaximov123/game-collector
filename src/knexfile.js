@@ -1,6 +1,7 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-module.exports = {
+export default{
     client: 'pg',
     connection: {
         host: process.env.POSTGRES_HOST,

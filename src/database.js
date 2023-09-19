@@ -1,9 +1,9 @@
-const knex = require('knex');
-const knexStringcase = require('knex-stringcase');
-const { attachPaginate } = require('knex-paginate');
+import knex from 'knex';
+import knexStringcase from 'knex-stringcase';
+import { attachPaginate } from 'knex-paginate';
 attachPaginate();
-const pg = require('pg');
-const knexConfig = require('./knexfile');
+import pg from 'pg';
+import knexConfig from './knexfile.js'
 
 pg.types.setTypeParser(pg.types.builtins.INT8, (value) => {
 	return parseInt(value);
@@ -17,16 +17,16 @@ pg.types.setTypeParser(pg.types.builtins.NUMERIC, (value) => {
 	return parseFloat(value);
 });
 
-const db = knex(knexStringcase(knexConfig));
-const database = db;
+export const db = knex(knexStringcase(knexConfig));
+export const database = db;
 
-function useTransaction(transaction = null) {
+export function useTransaction(transaction = null) {
 	let db = database;
 	db = transaction || db;
 	return db;
 };
 
-function buildFromValuesWhereReplacement(items) {
+export function buildFromValuesWhereReplacement(items) {
 	if (!Array.isArray(items)) {
 		throw new Error(`Items should be an array.`);
 	}
@@ -35,7 +35,7 @@ function buildFromValuesWhereReplacement(items) {
 		throw new Error(`Items can't be empty.`);
 	}
 
-	let string = ` = require((values `;
+	let string = ` from (values `;
 
 	string += items
 		.map((item) => {
@@ -61,4 +61,4 @@ function buildFromValuesWhereReplacement(items) {
 	return string;
 };
 
-module.exports = { db };
+export default { db };
