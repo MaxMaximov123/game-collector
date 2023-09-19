@@ -86,6 +86,7 @@ async function makeAllInserts(){
 	if (outcomesTransactions.length > 0){
 		let outcomesTransactions_ = outcomesTransactions.slice();
 		outcomesTransactions.length = 0;
+		console.log(outcomesTransactions_);
 		await db.transaction(async (trx) => {
 			await trx('outcomes').insert(outcomesTransactions_).onConflict().ignore();
 		});
